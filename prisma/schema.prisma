@@ -15,7 +15,7 @@ enum OrderStatus {
 }
 
 model Customers {
-  id          Int      @id @default(autoincrement())
+  id          String      @id @default(uuid())
   name        String
   email       String   @unique
   phoneNumber String   @unique
@@ -24,7 +24,7 @@ model Customers {
 }
 
 model Restaurants {
-  id        Int         @id @default(autoincrement())
+  id        String         @id @default(uuid())
   name      String      @unique
   location  String
   MenuItems MenuItems[]
@@ -32,9 +32,9 @@ model Restaurants {
 }
 
 model MenuItems {
-  id           Int          @id @default(autoincrement())
+  id           String         @id @default(uuid())
   restaurant   Restaurants  @relation(fields: [restaurantId], references: [id])
-  restaurantId Int
+  restaurantId String
   name         String
   price        Decimal
   isAvailable  Boolean      @default(true)
@@ -42,10 +42,10 @@ model MenuItems {
 }
 
 model Orders {
-  id           Int          @id @default(autoincrement())
+  id           String         @id @default(uuid())
   customer     Customers    @relation(fields: [customerId], references: [id])
-  customerId   Int
-  restaurantId Int
+  customerId   String
+  restaurantId String
   restaurant   Restaurants  @relation(fields: [restaurantId], references: [id])
   status       OrderStatus  @default(Placed)
   totalPrice   Decimal
@@ -54,10 +54,10 @@ model Orders {
 }
 
 model OrderItems {
-  id         Int       @id @default(autoincrement())
-  orderId    Int
+  id         String         @id @default(uuid())
+  orderId    String
   order      Orders    @relation(fields: [orderId], references: [id])
-  menuItemId Int
+  menuItemId String
   menuItem   MenuItems @relation(fields: [menuItemId], references: [id])
   quantity   Int
 }
