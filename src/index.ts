@@ -81,12 +81,6 @@ app.get("/customers/top", async (context) => {
 });
 
 
-//extra
-app.get("/customers", async (context) => {
-  const customer = await prisma.customers.findMany();
-  return context.json(customer, 200)
-})
-
 
 // Retrieve details of a customer
 app.get("/customers/:id", async (context) => {
@@ -130,11 +124,6 @@ app.post("/restaurants", async (context) => {
     }
 });
 
-//extra
-app.get("/restaurants", async (context) => {
-  const rest = await prisma.restaurants.findMany();
-  return context.json(rest, 200)
-})
 
 // Add a menu item to a restaurant
 app.post("/restaurants/:id/menu", async (context) => {
