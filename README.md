@@ -1,6 +1,6 @@
-# Nitrogen
+# Food Ordering Platform
 
-Nitrogen is a backend system designed for a **food ordering platform** that supports multiple restaurants. This system provides a relational database schema and implements REST API endpoints to manage customers, restaurants, menu items, and orders.
+This project implements a **food ordering platform** that supports multiple restaurants. This system provides a relational database schema and implements REST API endpoints to manage customers, restaurants, menu items, and orders.
 
 ## Table of Contents
 
