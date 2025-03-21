@@ -8,6 +8,12 @@ const app = new Hono();
 // Register a new customer
 app.post("/customers", async (context) => {
   const { name, email, phoneNumber, address } = await context.req.json();
+  
+  if (!name || !email || !phoneNumber || !address) {
+    return context.json({
+      message: "All fields (name, email, phoneNumber, address) are required"}, 400);
+  }
+  
   try {
     const existEmail = await prisma.customers.findUnique({ where: { email } });
     const existPhoneNumber = await prisma.customers.findUnique({
@@ -99,22 +105,29 @@ app.get("/customers/:id", async (context) => {
 
 app.post("/restaurants", async (context) => {
   const { name, location } = await context.req.json();
-  try {
-    const existName = await prisma.restaurants.findUnique({ where: { name } });
-    if (existName) {
-      return context.json({ message: "Restaurant name already exist" }, 404);
-    }
-    const restaurant = await prisma.restaurants.create({
-      data: {
-        name: name,
-        location: location,
-      },
-    });
-    return context.json(restaurant, 201);
-  } catch (error) {
-    console.error("Error creating a restaurant", error);
-    return context.json({ message: "Error creating a restaurant" }, 500);
+  if (!name || !location) {
+    return context.json({
+      message: "All fields (name, location) are required"
+    }, 400);
   }
+    try {
+      const existName = await prisma.restaurants.findUnique({
+        where: { name },
+      });
+      if (existName) {
+        return context.json({ message: "Restaurant name already exist" }, 404);
+      }
+      const restaurant = await prisma.restaurants.create({
+        data: {
+          name: name,
+          location: location,
+        },
+      });
+      return context.json(restaurant, 201);
+    } catch (error) {
+      console.error("Error creating a restaurant", error);
+      return context.json({ message: "Error creating a restaurant" }, 500);
+    }
 });
 
 //extra
@@ -127,6 +140,11 @@ app.get("/restaurants", async (context) => {
 app.post("/restaurants/:id/menu", async (context) => {
   const { id } = context.req.param();
   const { name, price } = await context.req.json();
+
+  if (!name || !price) {
+    return context.json({ message: "All fields (name, price) are required" }, 400);
+  }
+    
   try {
     const existRestaurant = await prisma.restaurants.findUnique({
       where: {
@@ -189,6 +207,12 @@ app.get("/restaurants/:id/menu", async (context) => {
 app.patch("/menu/:id", async (context) => {
   const { id } = context.req.param();
   const { price, isAvailable } = await context.req.json();
+
+  if (price === undefined && isAvailable === undefined) {
+    return context.json(
+      { message: "At least one field (price, isAvailable) is required" }, 400)
+  };
+
   try {
     const menuItem = await prisma.menuItems.findUnique({ where: { id } });
     if (!menuItem) {
@@ -212,8 +236,13 @@ app.patch("/menu/:id", async (context) => {
 });
 
 // Place an order (includes items and quantities)
-app.post("/orders", async (c) => {
-  const { customerId, restaurantId, items } = await c.req.json();
+app.post("/orders", async (context) => {
+  const { customerId, restaurantId, items } = await context.req.json();
+
+  if (!customerId || !restaurantId || !items || !Array.isArray(items) || items.length === 0) {
+    return context.json({message:"All fields (customerId, restaurantId, items) are required and items should be a non-empty array"}, 400);
+  }
+
   try {
         const customer = await prisma.customers.findUnique({
       where: { id: customerId },
@@ -223,10 +252,10 @@ app.post("/orders", async (c) => {
     });
 
     if (!customer) {
-      return c.json({ message: "Customer does not exist" }, 400);
+      return context.json({ message: "Customer does not exist" }, 400);
     }
     if (!restaurant) {
-      return c.json({ message: "Restaurant does not exist" }, 400);
+      return context.json({ message: "Restaurant does not exist" }, 400);
     }
 
     const order = await prisma.orders.create({
@@ -245,7 +274,7 @@ app.post("/orders", async (c) => {
       });
 
       if (!menuItem || !menuItem.isAvailable) {
-        return c.json(
+        return context.json(
           {
             message: `Menu item ID ${item.menuItemId} not found or unavailable`,
           },
@@ -275,10 +304,10 @@ app.post("/orders", async (c) => {
       },
     });
 
-    return c.json({ message: updatedOrder }, 201);
+    return context.json({ message: updatedOrder }, 201);
   } catch (error) {
     console.error("Error placing order:", error);
-    return c.json({ message: "Failed to place order" }, 500);
+    return context.json({ message: "Failed to place order" }, 500);
   }
 });
 
@@ -315,6 +344,11 @@ app.get("/orders/:id", async (context) => {
 app.patch("/orders/:id/status", async (context) => {
   const { id } = context.req.param();
   const { status } = await context.req.json();
+
+  if (!status) {
+    return context.json({ message: "The field 'status' is required" }, 400);
+  }
+
   try {
     const order = await prisma.orders.findUnique({ where: { id } });
 
@@ -399,7 +433,6 @@ app.get("/menu/top-items", async (context) => {
 app.get("/customers/:id/orders", async (context) => {
   const id = context.req.param("id");
   try {
-    // Check if the customer exists
     const customer = await prisma.customers.findUnique({
       where: { id },
     });
@@ -408,7 +441,6 @@ app.get("/customers/:id/orders", async (context) => {
       return context.json({ message: "Customer not found" }, 404);
     }
 
-    // Retrieve all orders placed by the customer
     const orders = await prisma.orders.findMany({
       where: { customerId: id },
       include: {
