@@ -143,7 +143,6 @@ The system provides the following REST API endpoints:
 - **Database ORM**: Prisma
 - **Database**: Neon.tech (Managed PostgreSQL)
 - **Language**: TypeScript
-   ```
 
 ## Contributing
 
